@@ -9,13 +9,15 @@
 #include <queue>
 #include <functional>
 #include <atomic>
+#include <mutex>
+#include <condition_variable>
 
 enum PoolMode {
     MODE_FIXED,
     MODE_CACHE
 };
 
-template<typename Task>
+template<typename Task> // CRTP
 class BaseTask {
 public:
     void run() {
@@ -33,7 +35,12 @@ private:
     std::vector<Thread*> threads_; // list of threads
     size_t initThreadSize_; // #threads
     std::queue<std::function<void()>> taskQue_;
-    std::atomic_uint 
+    std::atomic_uint taskSize_;
+    int taskQueThreshHold_; // Max #Tasks
+
+    std::mutex taskQueMtx_; // Saft lock of queue
+    std::condition_variable notFull_;
+    std::condition_variable notEmpty_;
 };
 
 
