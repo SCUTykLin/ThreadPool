@@ -17,12 +17,14 @@ enum PoolMode {
     MODE_CACHE
 };
 
-template<typename Task> // CRTP
+template<typename Task>
 class BaseTask {
 public:
     void run() {
         static_cast<Task*>(this)->runImpl();
     }
+
+    std::vector<std::function<void()>> func_que;
 };
 
 class Thread {
