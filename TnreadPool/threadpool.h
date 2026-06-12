@@ -11,10 +11,14 @@
 #include <atomic>
 #include <mutex>
 #include <condition_variable>
-
-enum PoolMode {
+enum class PoolMode {
     MODE_FIXED,
     MODE_CACHE
+};
+
+class Thread {
+public:
+    void start();
 };
 
 template<typename Task>
@@ -26,13 +30,23 @@ public:
 
     std::vector<std::function<void()>> func_que;
 };
-
-class Thread {
-
-};
-
 class ThreadPool {
 public:
+    ThreadPool();
+    ~ThreadPool();
+
+    void setMode(PoolMode mode);
+    void setTaskQueMaxThreshHold(int threshhold);
+    void setInitThreadSize(int size);
+    void submitTask();
+    void start(int initThreadSize = std::thread::hardware_concurrency());
+
+    ThreadPool(const ThreadPool&) = delete;
+    ThreadPool& operator=(const ThreadPool&) = delete;
+
+private:
+    void threadFunc();
+
 private:
     std::vector<Thread*> threads_; // list of threads
     size_t initThreadSize_; // #threads
@@ -43,6 +57,8 @@ private:
     std::mutex taskQueMtx_; // Saft lock of queue
     std::condition_variable notFull_;
     std::condition_variable notEmpty_;
+
+    PoolMode poolMode_;
 };
 
 
